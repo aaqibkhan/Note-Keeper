@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/content_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activity.NoteActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark" />
+
+    <EditText
+        android:id="@+id/tv_title"
+        style="@style/TextHeadingBig"
+        android:layout_width="match_parent"
+        android:background="@android:color/transparent"
+        android:hint="@string/title"
+        android:padding="@dimen/margin_large"
+        android:textColorHint="@color/hint" />
+
+    <EditText
+        android:id="@+id/tv_body"
+        style="@style/TextBodyBig"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:autoLink="all"
+        android:background="@android:color/transparent"
+        android:gravity="top"
+        android:hint="@string/description"
+        android:padding="@dimen/margin_large"
+        android:textColorHint="@color/hint" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/bg_color_list"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="@dimen/margin_small"/>
+
+</LinearLayout>

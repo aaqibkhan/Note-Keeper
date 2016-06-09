@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Task Aaqib</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+
+    <string name="action_sort">Sort</string>
+    <string name="creation_date">Creation date</string>
+    <string name="last_modified_date">Last modified date</string>
+    <string name="search">Search</string>
+    <string name="search_hint">Enter text</string>
+    <string name="delete">Delete</string>
+    <string name="discard_changes">Discard changes</string>
+
+</resources>
