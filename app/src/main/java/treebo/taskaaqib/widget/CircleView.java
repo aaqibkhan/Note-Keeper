@@ -9,6 +9,9 @@ import android.view.View;
 
 import treebo.taskaaqib.util.AppUtil;
 
+/**
+ * Simple view to show a colored circle with white border
+ */
 public class CircleView extends View {
 
     private int mSizeHalf;

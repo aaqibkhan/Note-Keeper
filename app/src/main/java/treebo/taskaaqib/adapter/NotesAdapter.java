@@ -16,8 +16,14 @@ import io.realm.RealmResults;
 import treebo.taskaaqib.R;
 import treebo.taskaaqib.model.Note;
 
+/**
+ * Handles list of notes
+ */
 public class NotesAdapter extends RealmRecyclerViewAdapter<Note, NotesAdapter.MyViewHolder> {
 
+    /**
+     * Interface to notify when a note is clicked
+     */
     public interface NotesListener {
         void onNoteClicked(Note note);
     }
@@ -38,18 +44,24 @@ public class NotesAdapter extends RealmRecyclerViewAdapter<Note, NotesAdapter.My
     @Override
     public void onBindViewHolder(final MyViewHolder holder, int position) {
         Note note = getData().get(position);
+
+        // Set note's title, if available, else make it invisible
         if (TextUtils.isEmpty(note.getHeading())) {
             holder.title.setVisibility(View.GONE);
         } else {
             holder.title.setVisibility(View.VISIBLE);
             holder.title.setText(note.getHeading());
         }
+
+        // Set note's body, if available, else make it invisible
         if (TextUtils.isEmpty(note.getBody())) {
             holder.body.setVisibility(View.GONE);
         } else {
             holder.body.setVisibility(View.VISIBLE);
             holder.body.setText(note.getBody());
         }
+
+        // Set background color of the note, if available, else assign default color
         if (TextUtils.isEmpty(note.getBgColorHex())) {
             holder.rootView.setCardBackgroundColor(ContextCompat.getColor(holder.rootView.getContext(), R.color.default_bg));
         } else {
@@ -59,6 +71,8 @@ public class NotesAdapter extends RealmRecyclerViewAdapter<Note, NotesAdapter.My
                 holder.rootView.setCardBackgroundColor(ContextCompat.getColor(holder.rootView.getContext(), R.color.default_bg));
             }
         }
+
+        // Set text color of the note, if available, else assign default color
         if (TextUtils.isEmpty(note.getTextColorHex())) {
             holder.title.setTextColor(ContextCompat.getColor(holder.rootView.getContext(), R.color.default_text));
             holder.body.setTextColor(ContextCompat.getColor(holder.rootView.getContext(), R.color.default_text));
@@ -71,6 +85,8 @@ public class NotesAdapter extends RealmRecyclerViewAdapter<Note, NotesAdapter.My
                 holder.body.setTextColor(ContextCompat.getColor(holder.rootView.getContext(), R.color.default_text));
             }
         }
+
+        // Set click listener to notify when the note is clicked
         holder.rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -81,6 +97,9 @@ public class NotesAdapter extends RealmRecyclerViewAdapter<Note, NotesAdapter.My
         });
     }
 
+    /**
+     * ViewHolder to avoid costly findViewById
+     */
     class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView title, body;
         public CardView rootView;

@@ -9,6 +9,9 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import treebo.taskaaqib.util.Constants;
 
+/**
+ * Model class for Note
+ */
 public class Note extends RealmObject implements Parcelable {
 
     @PrimaryKey

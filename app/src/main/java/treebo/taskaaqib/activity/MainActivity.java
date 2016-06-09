@@ -19,17 +19,27 @@ import treebo.taskaaqib.adapter.NotesAdapter;
 import treebo.taskaaqib.database.DBHelper;
 import treebo.taskaaqib.model.Note;
 
+/**
+ * The main screen
+ */
 public class MainActivity extends AppCompatActivity implements NotesAdapter.NotesListener {
 
     private FloatingActionButton mFab;
     private RecyclerView mRecyclerView;
     private NotesAdapter mAdapter;
 
+    // Request code for Note activity
+    private static final int REQUEST_CODE_NOTE = 123;
+
+    // Constants denoting the sort field
     private static final int SORT_BY_TITLE = 2;
     private static final int SORT_BY_CREATION_DATE = 1;
     private static final int SORT_BY_MODIFIED_DATE = 0;
+
+    // String constant to persist sort field variable 'mSortBy'
     private static final String PARAM_SORT = "PARAM_SORT";
-    private static final int REQUEST_CODE_NOTE = 123;
+
+    // Persisted variable holding the chosen sort field
     private int mSortBy;
 
     @Override
@@ -45,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements NotesAdapter.Note
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // Get sort field from savedInstanceState, if available
         if (savedInstanceState != null && savedInstanceState.containsKey(PARAM_SORT)) {
             mSortBy = savedInstanceState.getInt(PARAM_SORT);
         }
@@ -70,6 +81,12 @@ public class MainActivity extends AppCompatActivity implements NotesAdapter.Note
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Shows a popup-menu to select sort field, which are,
+     * Sort by title,
+     * Sort by creation date and
+     * Sort by last modified date
+     */
     private void onSortActionClicked() {
         PopupMenu popup = new PopupMenu(this, findViewById(R.id.action_sort));
         popup.getMenuInflater().inflate(R.menu.sort_menu, popup.getMenu());
@@ -110,11 +127,17 @@ public class MainActivity extends AppCompatActivity implements NotesAdapter.Note
         popup.show();
     }
 
+    /**
+     * Gets view references
+     */
     private void initViews() {
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mRecyclerView = (RecyclerView) findViewById(R.id.notes_list);
     }
 
+    /**
+     * Assigns all listeners
+     */
     private void setupListeners() {
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -124,6 +147,9 @@ public class MainActivity extends AppCompatActivity implements NotesAdapter.Note
         });
     }
 
+    /**
+     * Sets up the initial data for the screen
+     */
     private void setupData() {
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
@@ -133,6 +159,11 @@ public class MainActivity extends AppCompatActivity implements NotesAdapter.Note
         setNotesData();
     }
 
+    /**
+     * Gets all the notes from database
+     * depending upon the sort field selected
+     * and updates the notes list
+     */
     private void setNotesData() {
         RealmResults<Note> results;
         if (mSortBy == SORT_BY_TITLE) {
@@ -150,6 +181,13 @@ public class MainActivity extends AppCompatActivity implements NotesAdapter.Note
         }
     }
 
+    /**
+     * Invoked when a note is clicked
+     * or when a new note has to be made
+     * Passes the note instance (if available) to NoteActivity
+     *
+     * @param note The note, if note was clicked
+     */
     @Override
     public void onNoteClicked(Note note) {
         Intent intent = new Intent(this, NoteActivity.class);
@@ -162,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements NotesAdapter.Note
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        // Refresh the notes list if any data is changed
         if (requestCode == REQUEST_CODE_NOTE && resultCode == RESULT_OK) {
             setNotesData();
         }

@@ -24,8 +24,12 @@ import treebo.taskaaqib.database.DBHelper;
 import treebo.taskaaqib.model.Note;
 import treebo.taskaaqib.util.Constants;
 
+/**
+ * The note screen, where user can view, edit or delete it
+ */
 public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BGColorCallbacks {
 
+    // String constant to receive Note instance
     public static final String PARAM_NOTE = "PARAM_NOTE";
 
     private boolean isOld, isModified;
@@ -44,12 +48,19 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        /*
+            Get note instance (if available)
+            A note instance denotes that user is editing a note,
+            else is making a new note
+        */
         if (getIntent() != null) {
             if (getIntent().hasExtra(PARAM_NOTE)) {
                 mNote = getIntent().getParcelableExtra(PARAM_NOTE);
                 isOld = true;
             }
         }
+
+        // If editing a note, then do not show keyboard initially
         if (isOld) {
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         }
@@ -67,6 +78,10 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
+        /*
+            If user is making a new note, then
+            do not show delete action, else show it
+         */
         if (isOld) {
             menu.findItem(R.id.action_delete).setVisible(true);
         } else {
@@ -79,9 +94,15 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+                // Handle toolbar back button press
                 onBackPressed();
                 break;
             case R.id.action_delete:
+                /*
+                    Remove the note from database
+                    If removal successful, then notify main screen
+                    that data changed else nothing changed
+                 */
                 if (DBHelper.removeNote(this, mNote)) {
                     setResult(RESULT_OK);
                 } else {
@@ -90,6 +111,11 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
                 finish();
                 break;
             case R.id.action_discard:
+                /*
+                    Do not make any changes to the note, i.e,
+                    do not save it in database and
+                    notify main screen that nothing changed
+                 */
                 setResult(RESULT_CANCELED);
                 finish();
                 break;
@@ -97,6 +123,9 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
         return true;
     }
 
+    /**
+     * Get view references
+     */
     private void initViews() {
         mTitle = (EditText) findViewById(R.id.tv_title);
         mBody = (EditText) findViewById(R.id.tv_body);
@@ -104,14 +133,28 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
         mContentView = findViewById(R.id.content_layout);
     }
 
+    /**
+     * Set the initial data for the screen
+     */
     private void setupViews() {
+        // If editing a note, assign the title and body
         if (mNote != null) {
             mTitle.setText(mNote.getHeading());
             mBody.setText(mNote.getBody());
         }
+
+        // Set the background color of note, if available, else set default color
         mContentView.setBackgroundColor(Color.parseColor(mNote != null ? mNote.getBgColorHex() : Constants.hexWhite));
+
+        // Set the text color of note, if available, else set default color
         mTitle.setTextColor(Color.parseColor(mNote != null ? mNote.getTextColorHex() : Constants.hexBlack));
         mBody.setTextColor(Color.parseColor(mNote != null ? mNote.getTextColorHex() : Constants.hexBlack));
+
+        /*
+            Set the text hint, toolbar and navigationBar color depending upon the background color
+            Change color if background is not white
+            navigationBar color is only set for LOLLIPOP and above devices
+         */
         if (mNote != null && !mNote.getBgColorHex().equalsIgnoreCase(Constants.hexWhite)) {
             mTitle.setHintTextColor(Color.parseColor(Constants.hexHintWhitish));
             mBody.setHintTextColor(Color.parseColor(Constants.hexHintWhitish));
@@ -120,16 +163,26 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
                 getWindow().setNavigationBarColor(Color.parseColor(mNote.getBgColorHex()));
             }
         }
+
+        // Setup recycler view for background colors
         mRecyclerView.addItemDecoration(new HorizontalSpace(getResources().getDimensionPixelSize(R.dimen.margin_large)));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         mRecyclerView.setAdapter(new BGColorAdapter(this));
     }
 
+    /**
+     * Assigns all listeners
+     */
     private void setupListeners() {
         mTitle.addTextChangedListener(textWatcher);
         mBody.addTextChangedListener(textWatcher);
     }
 
+    /**
+     * Checks if text was modified or not,
+     * to later decide if to update
+     * last modified time or not
+     */
     TextWatcher textWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -149,33 +202,61 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
         }
     };
 
+    /**
+     * Invoked when a color is selected
+     *
+     * @param color The color in hex format (#RRGGBB)
+     */
     @Override
     public void onColorSelected(String color) {
         if (mNote == null) {
             mNote = new Note();
         }
+        // Make color change if its a different color from the existing one
         if (!mNote.getBgColorHex().equalsIgnoreCase(color)) {
+            // Set modified to true
             isModified = true;
+
+            // Change note background to selected color and update the note instance
             mContentView.setBackgroundColor(Color.parseColor(color));
             mNote.setBgColorHex(color);
+
             if (color.equalsIgnoreCase(Constants.hexWhite)) {
+                /*
+                    If selected background color is white then
+                    set default color for toolbar and navigationBar
+                    navigationBar color is only set for LOLLIPOP and above devices
+                 */
                 mToolbar.setBackgroundColor(ContextCompat.getColor(this, R.color.colorPrimary));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.navigationBarColor));
                 }
             } else {
+                /*
+                    If selected background color NOT white then
+                    set selected color for toolbar and navigationBar
+                    navigationBar color is only set for LOLLIPOP and above devices
+                 */
                 mToolbar.setBackgroundColor(Color.parseColor(color));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     getWindow().setNavigationBarColor(Color.parseColor(color));
                 }
             }
             if (color.equalsIgnoreCase(Constants.hexWhite)) {
+                /*
+                    If selected background color is white then
+                    set black and blackish color for text and text hint respectively
+                 */
                 mTitle.setTextColor(Color.parseColor(Constants.hexBlack));
                 mBody.setTextColor(Color.parseColor(Constants.hexBlack));
                 mTitle.setHintTextColor(Color.parseColor(Constants.hexHint));
                 mBody.setHintTextColor(Color.parseColor(Constants.hexHint));
                 mNote.setTextColorHex(Constants.hexBlack);
             } else {
+                /*
+                    If selected background color NOT white then
+                    set white and whitish color for text and text hint respectively
+                 */
                 mTitle.setTextColor(Color.parseColor(Constants.hexWhite));
                 mBody.setTextColor(Color.parseColor(Constants.hexWhite));
                 mTitle.setHintTextColor(Color.parseColor(Constants.hexHintWhitish));
@@ -185,6 +266,19 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
         }
     }
 
+    /**
+     * Decides whether to insert or update note in database or not
+     * Toolbar back button has been redirected here.
+     *
+     * If user is making a new note, check if title or body is
+     * non-empty, if yes then create a new note in database.
+     *
+     * If user is editing a note, check if text or color has been modified or not,
+     * if yes then save the changes in database.
+     *
+     * If modification has resulted in empty title and empty body then
+     * remove the note from the database
+     */
     @Override
     public void onBackPressed() {
         if (isOld) {
@@ -226,6 +320,9 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
         finish();
     }
 
+    /**
+     * ItemDecorator to add horizontal space in background colors list
+     */
     class HorizontalSpace extends RecyclerView.ItemDecoration {
 
         private final int mSpace;

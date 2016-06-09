@@ -1,7 +1,13 @@
 package treebo.taskaaqib.util;
 
+/**
+ * Application level constants
+ */
 public class Constants {
 
+    /**
+     * Background colors for note
+     */
     public static final String[] bgColors = {
             "#ff3f3f",
             "#ff6600",
