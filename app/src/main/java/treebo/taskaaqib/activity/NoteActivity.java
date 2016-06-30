@@ -31,6 +31,11 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
 
     // String constant to receive Note instance
     public static final String PARAM_NOTE = "PARAM_NOTE";
+    // String constant to persist note color variable 'mColorNote'
+    private static final String PARAM_COLOR = "PARAM_COLOR";
+
+    // Persisted variable holding the chosen note color
+    private String mColorNote;
 
     private boolean isOld, isModified;
     private Note mNote;
@@ -38,6 +43,12 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
     private RecyclerView mRecyclerView;
     private View mContentView;
     private Toolbar mToolbar;
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(PARAM_COLOR, mColorNote);
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +69,13 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
                 mNote = getIntent().getParcelableExtra(PARAM_NOTE);
                 isOld = true;
             }
+        }
+
+        // Get color field from savedInstanceState, if available
+        if (savedInstanceState != null && savedInstanceState.containsKey(PARAM_COLOR)) {
+            mColorNote = savedInstanceState.getString(PARAM_COLOR);
+        } else {
+            mColorNote = mNote != null ? mNote.getBgColorHex() : Constants.hexWhite;
         }
 
         // If editing a note, then do not show keyboard initially
@@ -143,26 +161,8 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
             mBody.setText(mNote.getBody());
         }
 
-        // Set the background color of note, if available, else set default color
-        mContentView.setBackgroundColor(Color.parseColor(mNote != null ? mNote.getBgColorHex() : Constants.hexWhite));
-
-        // Set the text color of note, if available, else set default color
-        mTitle.setTextColor(Color.parseColor(mNote != null ? mNote.getTextColorHex() : Constants.hexBlack));
-        mBody.setTextColor(Color.parseColor(mNote != null ? mNote.getTextColorHex() : Constants.hexBlack));
-
-        /*
-            Set the text hint, toolbar and navigationBar color depending upon the background color
-            Change color if background is not white
-            navigationBar color is only set for LOLLIPOP and above devices
-         */
-        if (mNote != null && !mNote.getBgColorHex().equalsIgnoreCase(Constants.hexWhite)) {
-            mTitle.setHintTextColor(Color.parseColor(Constants.hexHintWhitish));
-            mBody.setHintTextColor(Color.parseColor(Constants.hexHintWhitish));
-            mToolbar.setBackgroundColor(Color.parseColor(mNote.getBgColorHex()));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getWindow().setNavigationBarColor(Color.parseColor(mNote.getBgColorHex()));
-            }
-        }
+        // Initialize the color of all views
+        setColor(mColorNote, true);
 
         // Setup recycler view for background colors
         mRecyclerView.addItemDecoration(new HorizontalSpace(getResources().getDimensionPixelSize(R.dimen.margin_large)));
@@ -209,13 +209,27 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
      */
     @Override
     public void onColorSelected(String color) {
+        setColor(color, false);
+    }
+
+    /**
+     * Sets the color on the note object and
+     * updates all related view's color
+     *
+     * @param color The color in hex format (#RRGGBB)
+     * @param force If true, will set color even if it matches the existing color in Note object
+     */
+    public void setColor(String color, boolean force) {
+        mColorNote = color;
         if (mNote == null) {
             mNote = new Note();
         }
         // Make color change if its a different color from the existing one
-        if (!mNote.getBgColorHex().equalsIgnoreCase(color)) {
-            // Set modified to true
-            isModified = true;
+        if (!mNote.getBgColorHex().equalsIgnoreCase(color) || force) {
+            // Set modified to true if 'force' is false
+            if (!force) {
+                isModified = true;
+            }
 
             // Change note background to selected color and update the note instance
             mContentView.setBackgroundColor(Color.parseColor(color));
@@ -269,13 +283,13 @@ public class NoteActivity extends AppCompatActivity implements BGColorAdapter.BG
     /**
      * Decides whether to insert or update note in database or not
      * Toolbar back button has been redirected here.
-     *
+     * <p/>
      * If user is making a new note, check if title or body is
      * non-empty, if yes then create a new note in database.
-     *
+     * <p/>
      * If user is editing a note, check if text or color has been modified or not,
      * if yes then save the changes in database.
-     *
+     * <p/>
      * If modification has resulted in empty title and empty body then
      * remove the note from the database
      */
